@@ -12,9 +12,21 @@ if "%PROCESSOR_ARCHITECTURE%"=="x86" (
 
 for /f "tokens=2*" %%a in ('reg query "%registryKey%" /v "%valueName%" ^| find "%valueName%"') do set "regValue=%%b"
 
-echo =================================================
 set "potentialPath=%regValue%\steamapps\common\XSOverlay_Beta\"
 set "potentialPathJson=%potentialPath%XSOverlay_Data\StreamingAssets\Plugins\UserInterface\settings.obs.json"
+
+rem Check if the target folder exists
+if not exist "%potentialPath%" (
+    echo =================================================
+    echo Couldn't find XSOverlay install directory.
+    echo Sorry :[
+    echo =================================================
+    echo.
+    pause
+    exit
+)
+
+echo =================================================
 echo Potential Path:
 echo   %potentialPath%
 echo =================================================
