@@ -8,7 +8,7 @@
 > <br>If that doesn't work, just place the content's of the mod folder inside of the root of XSOverlay.
 > <br>You can figure it out.
 
-> In your OBS Studio, go to:<br>
-> `Tools` > `WebSocket Settings`
-> <br>Check: Enable WebSocket server.
-> <br>Click Apply.
+> - In your OBS Studio, go to:
+>   - `Tools` > `WebSocket Settings`
+>   - Check: Enable WebSocket server.
+>   - Click Apply.
