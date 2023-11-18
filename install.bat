@@ -43,7 +43,6 @@ echo {"port":%socketPort%,"password":"%socketPass%"} > "%potentialPathJson%"
 echo =================================================
 echo.
 
-
 echo =================================================
 echo Mod has copied to XSOverlay directory.
 echo Start XSOverlay and check your media buttons.
