@@ -13,7 +13,6 @@ if "%PROCESSOR_ARCHITECTURE%"=="x86" (
 for /f "tokens=2*" %%a in ('reg query "%registryKey%" /v "%valueName%" ^| find "%valueName%"') do set "regValue=%%b"
 
 set "potentialPath=%regValue%\steamapps\common\XSOverlay_Beta\"
-set "potentialPathJson=%potentialPath%XSOverlay_Data\StreamingAssets\Plugins\UserInterface\settings.obs.json"
 
 rem Check if the target folder exists
 if not exist "%potentialPath%" (
@@ -46,19 +45,9 @@ echo =================================================
 set /p socketPass=Password: 
 echo.
 
-echo =================================================
-set "modDir=%~dp0\mod\*"
-xcopy "%modDir%" "%potentialPath%" /E /Y
-echo =================================================
-echo Generating Settings: 'settings.obs.json'
-echo {"port":%socketPort%,"password":"%socketPass%"} > "%potentialPathJson%"
-echo =================================================
-echo.
+set "potentialPathBridge=%potentialPath%XSOverlay_Data\StreamingAssets\Modules\Bridge\"
+set "potentialPathNode=%potentialPathBridge%XSOverlay-Node-Server.exe"
 
-echo =================================================
-echo Mod has copied to XSOverlay directory.
-echo Start XSOverlay and check your media buttons.
-echo =================================================
-echo.
+set "patchFile=%~dp0\src\patch.js"
 
-pause
+start /d "%potentialPathBridge%" "XSOverlay Node Patch" "%potentialPathNode%" "%patchFile%" "--port" "%socketPort%" "--pass" "%socketPass%"
