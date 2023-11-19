@@ -1,5 +1,5 @@
 const fs = require('node:fs/promises');
-const path = require('path');
+const {join, basename, dirname} = require('path');
 
 const template = [
     '<!--MOD_START-->',
@@ -8,24 +8,16 @@ const template = [
     '<!--MOD_END-->'
 ].join('\n');
 
-const readline = require('node:readline/promises');
-const { stdin: input, stdout: output } = require('node:process');
-
-const rl = readline.createInterface({ input, output });
-
 (async function init() {
+    // Read obs websocket settings so it's easier for the user to setup
+    let globalSettings = await getObsStudioGlobalSettings();
+    if (!globalSettings.OBSWebSocket) return await fail("No OBSWebSocket settings have been found under the current profile.\n - Make sure you have opened OBS Studio and it's updated to recent releases.");
+
     const defaultPort = 4455;
-    const settings = {
-        port: defaultPort,
-        password: undefined
+    let settings = {
+        port: globalSettings.OBSWebSocket.ServerPort || defaultPort,
+        password: globalSettings.OBSWebSocket.ServerPassword
     }
-
-    console.log(process.argv);
-    console.log();
-
-    settings.port = +process.argv[process.argv.indexOf('--port') + 1];
-    if (isNaN(settings.port)) settings.port = defaultPort;
-    settings.password = (process.argv[process.argv.indexOf('--pass') + 1] || '').trim();
 
     console.clear();
     separator();
@@ -40,12 +32,13 @@ const rl = readline.createInterface({ input, output });
     const settingsPath = basePath + "/settings.obs.json";
     const htmlPath = basePath + "/GlobalToolbar.html";
 
-    const scriptOrigin = path.join(path.dirname(__filename), 'obs.js');
+    const scriptOrigin = join(dirname(__filename), 'obs.js');
     const scriptPath = basePath + "/Shared/js/obs.js";
 
-    console.log("Writing files...");
-    await fs.writeFile(settingsPath, settingsJson);
+    console.log("Copying: " + basename(scriptPath));
     await fs.copyFile(scriptOrigin, scriptPath);
+    console.log("Writing: " + basename(settingsPath));
+    await fs.writeFile(settingsPath, settingsJson);
 
     let html = await fs.readFile(htmlPath, "utf8");
     const pattern = /<!--MOD_START-->[\s\S]*<!--MOD_END-->/;
@@ -57,16 +50,61 @@ const rl = readline.createInterface({ input, output });
         html = html.replace('</head>', template + '\n</head>');
     }
 
+    console.log("Writing: " + basename(htmlPath));
     await fs.writeFile(htmlPath, html, "utf8");
 
-    console.log("Files have been written, you can now open XSOverlay.");
+    console.log();
+    console.log("Files have been replaced, you can now open XSOverlay.");
     console.log();
     console.log("Press any key to continue...");
     await keypress();
-    rl.close();
 
     process.exit();
 })();
+
+async function fail(msg) {
+    console.log("Operation Failed: " + msg);
+}
+
+async function getObsStudioGlobalSettings() {
+    let path = join(process.env.APPDATA, 'obs-studio', 'global.ini');
+
+    let settings = await fs.readFile(path, 'utf8');
+    let lines = settings.split(/[\r\n]+/).map(v => v.trim());
+
+    const headerPattern = /^\[([\w-]+)\]$/;
+    const keyValPattern = /^([\w-.]+)=(.+)$/;
+    const numberPattern = /^\d+(?:.\d+)?$/;
+
+    let object = { "DEFAULT": {} };
+    let header = 'DEFAULT', match;
+    for (let v of lines) {
+        if (v.length === 0) continue;
+
+        // Check header match
+        if ((match = v.match(headerPattern))) {
+            header = match[1];
+            if (!Object.hasOwnProperty(header))
+                object[header] = {};
+            continue;
+        }
+        
+        // Check containing values
+        if ((match = v.match(keyValPattern))) {
+            let key = match[1];
+            let val = match[2];
+            
+            if (val === 'false' || val === 'true')
+                val = val === 'true';
+
+            if (numberPattern.test(val)) val = +val;
+
+            object[header][key] = val;
+        }
+    }
+
+    return object;
+}
 
 function separator(space) {
     console.log("==================================");
