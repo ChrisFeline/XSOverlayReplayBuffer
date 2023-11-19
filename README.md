@@ -4,7 +4,7 @@
 > I will make a new plugin when XSOverlay officially releases plugins.
 
 # How to?
-Just download the repo, then open `install.bat`. It will try to place the files on their location.
+[**Download**](https://github.com/ChrisFeline/XSOverlayReplayBuffer/archive/refs/heads/main.zip) this repo, extract it, then open `install.bat`.
 
 - In your OBS Studio, go to:
   - `Tools` > `WebSocket Settings`
